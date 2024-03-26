@@ -1,0 +1,45 @@
+#!/bin/bash
+
+cat <<EOF
+{
+    "type": "SPEC",
+    "spec": {
+        "title": "Cityworks Container",
+        "type": "object",
+        "properties": {
+            "report_name": {
+                "type": "dictionary",
+                "custom": {
+                    "options": [
+                        {
+                            "label": "Cases",
+                            "value": "Cases"
+                        },
+                        {
+                            "label": "Inspections",
+                            "value": "Inspections"
+                        },
+                        {
+                            "label": "Requests",
+                            "value": "Requests"
+                        },
+                        {
+                            "label": "Work Orders",
+                            "value": "Work Orders"
+                        }
+                    ]
+                }
+            },
+            "login_name": {
+                "type": "secret"
+            },
+            "password":{
+                "type": "secret"
+            },
+            "months":{
+                "type": "string"
+            }
+        }
+    }
+}
+EOF

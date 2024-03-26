@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-aws ecr get-login-password --region us-east-1 | podman login --username AWS --password-stdin 993874376304.dkr.ecr.us-east-1.amazonaws.com/SCRIPT-NAME
-podman manifest push --all SCRIPT_NAME:latest 993874376304.dkr.ecr.us-east-1.amazonaws.com/SCRIPT-NAME:latest
+aws ecr get-login-password --region us-east-1 | podman login --username AWS --password-stdin 993874376304.dkr.ecr.us-east-1.amazonaws.com/cityworks-puller
+podman manifest push --all cityworks-puller:latest 993874376304.dkr.ecr.us-east-1.amazonaws.com/cityworks-puller:latest
