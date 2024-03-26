@@ -1,0 +1,8 @@
+{
+    "config": {
+        "login_name": "",
+        "password": "",
+        "report_name": "Cases"
+    },
+    "dataFilePath": "data.csv"
+  }
