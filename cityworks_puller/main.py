@@ -39,6 +39,9 @@ def run(config):
     elif report_name == 'Requests':
         request_ids = cityworks.search_requests(token, months_to_include)
         out_data = cityworks.get_requests_by_ids(token, request_ids)
+    elif report_name == 'Case Fees':
+        case_object_ids = cityworks.search_cases(token, months_to_include)
+        out_data = cityworks.get_case_fees_by_id(token, case_object_ids)
     
     csv_headers = cityworks.create_csv(out_data, config.data_file_path)
     headers_dict = [{"name": header, "type": "VARCHAR"} for header in csv_headers]

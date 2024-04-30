@@ -5,6 +5,7 @@ import csv
 from datetime import date
 from dateutil.relativedelta import relativedelta
 import sys
+import time
 
 class Cityworks:
     def __init__(self, login_name, password, base_url):
@@ -29,7 +30,11 @@ class Cityworks:
 
             if response.status_code == 200:
                 return response.json()
-
+            
+            elif response.status_code == 503:
+                time.sleep(5)
+                self.make_api_call(self, method, url, payload)
+            
             else:
                 logging.error("Api request returned a non-200 response")
                 logging.error(response.json())
@@ -123,6 +128,27 @@ class Cityworks:
         url = f"{self.base_url}/Ams/ServiceRequest/ByIds"
         requests = self.get_object_by_ids(token, url, ids, "RequestIds")
         return requests
+    
+    def get_case_fees_by_id(self, token, case_ids):
+        url = f"{self.base_url}/Pll/CaseFees/ByCaObjectId"
+        i = 1
+        num_cases = len(case_ids)
+        fees = []
+        for case_id in case_ids:
+            payload = {
+                "token": token,
+                "data": json.dumps({'CaObjectId': case_id})   
+            }
+            fee_response = self.make_api_call("GET", url, payload)
+            if len(fee_response["Value"]) > 0:
+                logging.info(f"Case {i} out of {num_cases} has fees")
+                fees.extend(fee_response["Value"])
+            else:
+                logging.info(f"Case {i} out of {num_cases} has no fees")
+            i += 1
+        logging.info(f"Successfully got case fees from Cityworks")
+        print(fees)
+        return fees
 
     def get_case_comments_by_id(self, token, ids):
         url = f"{self.base_url}/Pll/CaseObjectComments/ByCaObjectId"
@@ -147,15 +173,18 @@ class Cityworks:
 
     def create_csv(self, data, path):
         try:
-            with open(path, "w", newline="") as csvfile:
-                fieldnames = data[0].keys()
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            if len(data) > 0:
+                with open(path, "w", newline="") as csvfile:
+                    fieldnames = data[0].keys()
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-                for record in data:
-                    writer.writerow(record)
+                    for record in data:
+                        writer.writerow(record)
 
-                logging.info("Successfully created csv file")
+                    logging.info("Successfully created csv file")
 
-                return fieldnames
+                    return fieldnames
+            else:
+                return []
         except:
             raise Exception("Error writing to csv file")

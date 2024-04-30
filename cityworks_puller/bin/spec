@@ -16,6 +16,10 @@ cat <<EOF
                             "value": "Cases"
                         },
                         {
+                            "label": "Case Fees",
+                            "value": "Case Fees"
+                        },
+                        {
                             "label": "Inspections",
                             "value": "Inspections"
                         },
