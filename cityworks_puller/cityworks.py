@@ -147,7 +147,6 @@ class Cityworks:
                 logging.info(f"Case {i} out of {num_cases} has no fees")
             i += 1
         logging.info(f"Successfully got case fees from Cityworks")
-        print(fees)
         return fees
 
     def get_case_comments_by_id(self, token, ids):
