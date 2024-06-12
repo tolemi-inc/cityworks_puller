@@ -62,7 +62,7 @@ class Cityworks:
         payload = {
             "token": token,
             "data": json.dumps({start_date_text: start.strftime("%Y-%m-%d"), end_date_text: end.strftime("%Y-%m-%d")})
-            }
+        }
         
         response = self.make_api_call("GET", url, payload)
 
@@ -127,6 +127,11 @@ class Cityworks:
     def get_requests_by_ids(self, token, ids):
         url = f"{self.base_url}/Ams/ServiceRequest/ByIds"
         requests = self.get_object_by_ids(token, url, ids, "RequestIds")
+        return requests
+    
+    def get_inspection_questions_by_ids(self, token, ids):
+        url = f"{self.base_url}/Ams/Inspection/Questions"
+        requests = self.get_object_by_ids(token, url, ids, "InspectionIds")
         return requests
     
     def get_case_fees_by_id(self, token, case_ids):
