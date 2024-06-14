@@ -30,6 +30,10 @@ cat <<EOF
                         {
                             "label": "Work Orders",
                             "value": "Work Orders"
+                        },
+                        {
+                            "label": "Inspection Questions",
+                            "value": "Inspection Questions"
                         }
                     ]
                 }
