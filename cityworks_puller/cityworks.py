@@ -2,7 +2,7 @@ import requests
 import logging
 import json
 import csv
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 import sys
 import time
@@ -56,13 +56,18 @@ class Cityworks:
 
         return response["Value"]["Token"]
     
-    def search_objects(self, token, url, months, start_date_text, end_date_text):
-        end = date.today()
-        start = end - relativedelta(months=months)
-        payload = {
-            "token": token,
-            "data": json.dumps({start_date_text: start.strftime("%Y-%m-%d"), end_date_text: end.strftime("%Y-%m-%d")})
-        }
+    def search_objects(self, token, url, months=None, start_date_text=None, end_date_text=None):
+        if start_date_text:
+            end = date.today()
+            start = end - relativedelta(months=months)
+            payload = {
+                "token": token,
+                "data": json.dumps({start_date_text: start.strftime("%Y-%m-%d"), end_date_text: end.strftime("%Y-%m-%d")})
+            }
+        else:
+            payload = {
+                "token": token
+            }        
         
         response = self.make_api_call("GET", url, payload)
 
@@ -74,9 +79,9 @@ class Cityworks:
 
         return response["Value"] 
     
-    def search_cases(self, token, months=1):
+    def search_cases(self, token):
         url = f"{self.base_url}/Pll/CaseObject/Search"
-        cases = self.search_objects(token, url, months, "DateEnteredFrom", "DateEnteredTo")
+        cases = self.search_objects(token, url)
         return cases 
 
     def search_inspections(self, token, months=1):
@@ -114,6 +119,15 @@ class Cityworks:
         cases = self.get_object_by_ids(token, url, ids, "CaObjectIds")
         return cases
     
+    def get_recent_case_ids(self, token, months):
+        case_object_ids = self.search_cases(token)
+        cases = self.get_cases_by_ids (token, case_object_ids)
+        cutoff = date.today() - relativedelta(months=months)
+        recent_cases = [case for case in cases if 
+                        ((case['DateModified'] and datetime.strptime(case['DateModified'], '%Y-%m-%dT%H:%M:%SZ').date() >= cutoff) or 
+                            (not case['DateModified'] and datetime.strptime(case['DateEntered'], '%Y-%m-%dT%H:%M:%SZ').date() >= cutoff))]
+        return [recent_case['CaObjectId'] for recent_case in recent_cases]
+
     def get_inspections_by_ids(self, token, ids):
         url = f"{self.base_url}/Ams/Inspection/ByIds"
         inspections = self.get_object_by_ids(token, url, ids, "InspectionIds")
