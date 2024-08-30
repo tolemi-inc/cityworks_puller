@@ -29,7 +29,7 @@ def run(config):
 
     if report_name == 'Cases':
         case_object_ids = cityworks.search_cases(token)
-        out_data = cityworks.get_cases_by_ids(token, case_object_ids, months_to_include)
+        out_data = cityworks.get_cases_by_ids(token, case_object_ids)
     elif report_name == 'Inspections':
         inspection_ids = cityworks.search_inspections(token, months_to_include)
         out_data = cityworks.get_inspections_by_ids(token, inspection_ids)
