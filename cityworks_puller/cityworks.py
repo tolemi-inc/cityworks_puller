@@ -6,6 +6,7 @@ from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 import sys
 import time
+import pandas as pd
 
 class Cityworks:
     def __init__(self, login_name, password, base_url):
@@ -77,7 +78,7 @@ class Cityworks:
 
         logging.info(f"Successfully searched for objects from the following endpoint: {url}")
 
-        return response["Value"] 
+        return response["Value"]
     
     def search_cases(self, token):
         url = f"{self.base_url}/Pll/CaseObject/Search"
@@ -98,6 +99,11 @@ class Cityworks:
         url = f"{self.base_url}/Ams/ServiceRequest/Search"
         requests = self.search_objects(token, url, months, "DateTimeInitBegin", "DateTimeInitEnd")
         return requests   
+    
+    def search_case_addresses(self, token):
+        url = f"{self.base_url}/Pll/CaseAddress/SearchObject"
+        requests = self.search_objects(token, url)
+        return requests 
 
     def get_object_by_ids(self, token, url, ids, id_name, batch_size=500):
         objects = []
@@ -112,7 +118,7 @@ class Cityworks:
             logging.info(f"{i+len(batch_ids)} out of {len(ids)} objects retrieved successfully")
         
         logging.info(f"Successfully got objects from {id_name}")
-        return objects
+        return pd.DataFrame(objects)
 
     def get_cases_by_ids(self, token, ids):
         url = f"{self.base_url}/Pll/CaseObject/ByIds"
@@ -122,11 +128,16 @@ class Cityworks:
     def get_recent_case_ids(self, token, months):
         case_object_ids = self.search_cases(token)
         cases = self.get_cases_by_ids (token, case_object_ids)
-        cutoff = date.today() - relativedelta(months=months)
-        recent_cases = [case for case in cases if 
-                        ((case['DateModified'] and datetime.strptime(case['DateModified'], '%Y-%m-%dT%H:%M:%SZ').date() >= cutoff) or 
-                            (not case['DateModified'] and datetime.strptime(case['DateEntered'], '%Y-%m-%dT%H:%M:%SZ').date() >= cutoff))]
-        return [recent_case['CaObjectId'] for recent_case in recent_cases]
+
+        cutoff = pd.Timestamp(date.today() - relativedelta(months=months))
+        cases['DateModified'] = pd.to_datetime(cases['DateModified'], format='%Y-%m-%dT%H:%M:%SZ', errors='coerce')
+        cases['DateEntered'] = pd.to_datetime(cases['DateEntered'], format='%Y-%m-%dT%H:%M:%SZ', errors='coerce')
+    
+        recent_cases = cases[
+            (cases['DateModified'] >= cutoff) | 
+            (cases['DateModified'].isna() & (cases['DateEntered'] >= cutoff))
+        ]
+        return recent_cases['CaObjectId'].tolist()
 
     def get_inspections_by_ids(self, token, ids):
         url = f"{self.base_url}/Ams/Inspection/ByIds"
@@ -166,42 +177,24 @@ class Cityworks:
                 logging.info(f"Case {i} out of {num_cases} has no fees")
             i += 1
         logging.info(f"Successfully got case fees from Cityworks")
-        return fees
+        return pd.DataFrame(fees)
 
-    def get_case_comments_by_id(self, token, ids):
-        url = f"{self.base_url}/Pll/CaseObjectComments/ByCaObjectId"
-        case_comments = []
-        case_number = 1
-        for id in ids:
-            payload = {
-                "token": token,
-                "data": json.dumps({'CaObjectId': id})   
-            }
-            response = self.make_api_call("GET", url, payload)
-            logging.info(f"Got comments for case {case_number} out of {len(ids)}")
-            comments = response["Value"]
-            for comment in comments:
-                comment["CaObjectId"] = id
-            case_comments.extend(comments)
-            case_number += 1
+    def get_cases_with_addresses(self, token):
+        case_addresses = pd.DataFrame(self.search_case_addresses(token))
+        case_addresses = case_addresses[['CaObjectId', 'CaseNumber', 'Location']]
 
-        self.create_csv(case_comments, "comments.csv")
+        case_object_ids = self.search_cases(token)
+        cases = pd.DataFrame(self.get_cases_by_ids(token, case_object_ids))
 
-        return case_comments
+        cases_with_addresses = pd.merge(cases, case_addresses, on='CaObjectId', how='left')
+        return cases_with_addresses
 
     def create_csv(self, data, path):
         try:
             if len(data) > 0:
-                with open(path, "w", newline="") as csvfile:
-                    fieldnames = data[0].keys()
-                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-                    for record in data:
-                        writer.writerow(record)
-
-                    logging.info("Successfully created csv file")
-
-                    return fieldnames
+                field_names = data.columns.tolist()
+                data.to_csv(path, header=False, index=False)
+                return field_names
             else:
                 return []
         except:

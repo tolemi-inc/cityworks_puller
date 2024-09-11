@@ -28,8 +28,7 @@ def run(config):
         raise Exception("Unable to convert number of months to integer")
 
     if report_name == 'Cases':
-        case_object_ids = cityworks.search_cases(token)
-        out_data = cityworks.get_cases_by_ids(token, case_object_ids)
+        out_data = cityworks.get_cases_with_addresses(token)
     elif report_name == 'Inspections':
         inspection_ids = cityworks.search_inspections(token, months_to_include)
         out_data = cityworks.get_inspections_by_ids(token, inspection_ids)
