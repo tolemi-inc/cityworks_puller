@@ -57,16 +57,11 @@ class Cityworks:
 
         return response["Value"]["Token"]
     
-    def search_objects(self, token, url, months=None, start_date_text=None, end_date_text=None):
-        if start_date_text:
-            end = date.today()
-            start = end - relativedelta(months=months)
+    def search_objects(self, token, url, months=None, filter_criteria=None):
+        if filter_criteria:
             payload = {
                 "token": token,
-                "data": json.dumps({
-                    start_date_text: start.strftime("%Y-%m-%d"), 
-                    end_date_text: end.strftime("%Y-%m-%d")
-                })
+                "data": json.dumps(filter_criteria)
             }
         else:
             payload = {
@@ -83,6 +78,11 @@ class Cityworks:
 
         return response["Value"]
     
+    def generate_date_filter_criteria(self, months, start_date_text, end_date_text):
+        end = date.today()
+        start = end - relativedelta(months=months)
+        return {start_date_text: start.strftime("%Y-%m-%d"), end_date_text: end.strftime("%Y-%m-%d")}
+    
     def search_cases(self, token):
         url = f"{self.base_url}/Pll/CaseObject/Search"
         cases = self.search_objects(token, url)
@@ -90,17 +90,20 @@ class Cityworks:
 
     def search_inspections(self, token, months=1):
         url = f"{self.base_url}/Ams/Inspection/Search"
-        inspections = self.search_objects(token, url, months, "InitiateDateBegin", "InitiateDateEnd")
+        date_filter = self.generate_date_filter_criteria(months, "InitiateDateBegin", "InitiateDateEnd")
+        inspections = self.search_objects(token, url, date_filter)
         return inspections 
 
     def search_work_orders(self, token, months=1):
         url = f"{self.base_url}/Ams/WorkOrder/Search"
-        work_orders = self.search_objects(token, url, months, "InitiateDateBegin", "InitiateDateEnd")
+        date_filter = self.generate_date_filter_criteria(months, "InitiateDateBegin", "InitiateDateEnd")
+        work_orders = self.search_objects(token, url, date_filter)
         return work_orders 
        
     def search_requests(self, token, months=1):
         url = f"{self.base_url}/Ams/ServiceRequest/Search"
-        requests = self.search_objects(token, url, months, "DateTimeInitBegin", "DateTimeInitEnd")
+        date_filter = self.generate_date_filter_criteria(months, "DateTimeInitBegin", "DateTimeInitEnd")
+        requests = self.search_objects(token, url, date_filter)
         return requests   
     
     def search_case_addresses(self, token):
