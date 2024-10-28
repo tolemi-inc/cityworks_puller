@@ -63,7 +63,10 @@ class Cityworks:
             start = end - relativedelta(months=months)
             payload = {
                 "token": token,
-                "data": json.dumps({start_date_text: start.strftime("%Y-%m-%d"), end_date_text: end.strftime("%Y-%m-%d")})
+                "data": json.dumps({
+                    start_date_text: start.strftime("%Y-%m-%d"), 
+                    end_date_text: end.strftime("%Y-%m-%d")
+                })
             }
         else:
             payload = {
@@ -127,7 +130,7 @@ class Cityworks:
     
     def get_recent_case_ids(self, token, months):
         case_object_ids = self.search_cases(token)
-        cases = self.get_cases_by_ids (token, case_object_ids)
+        cases = self.get_cases_by_ids(token, case_object_ids)
 
         cutoff = pd.Timestamp(date.today() - relativedelta(months=months))
         cases['DateModified'] = pd.to_datetime(cases['DateModified'], format='%Y-%m-%dT%H:%M:%SZ', errors='coerce')
@@ -178,6 +181,24 @@ class Cityworks:
             i += 1
         logging.info(f"Successfully got case fees from Cityworks")
         return pd.DataFrame(fees)
+
+    def get_case_tasks_by_id(self, token, case_ids):
+        url = f"{self.base_url}/Pll/CaseTask/ByCaObjectId"
+        i = 1
+        num_cases = len(case_ids)
+        tasks = []
+        for case_id in case_ids:
+            payload = {
+                "token": token,
+                "data": json.dumps({'CaObjectId': case_id})   
+            }
+            tasks_response = self.make_api_call("GET", url, payload)
+            if len(tasks_response["Value"]) > 0:
+                tasks.extend(tasks_response["Value"])
+            logging.info(f"Fectched tasks for case {i} out of {num_cases}")
+            i += 1
+        logging.info(f"Successfully got case tasks from Cityworks")
+        return pd.DataFrame(tasks)
 
     def get_cases_with_addresses(self, token):
         case_addresses = pd.DataFrame(self.search_case_addresses(token))
