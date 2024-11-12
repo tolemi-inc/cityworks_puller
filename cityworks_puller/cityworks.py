@@ -179,63 +179,34 @@ class Cityworks:
         requests = self.get_object_by_ids(token, url, ids, "InspectionIds")
         return requests
     
-    def get_case_fees_by_id(self, token, case_ids):
-        url = f"{self.base_url}/Pll/CaseFees/ByCaObjectId"
+    def get_related_object_by_case_id(self, object_type, token, case_ids):
+        url = f"{self.base_url}/Pll/{object_type}/ByCaObjectId"
         i = 1
         num_cases = len(case_ids)
-        fees = []
+        related_objects = []
         for case_id in case_ids:
             payload = {
                 "token": token,
                 "data": json.dumps({'CaObjectId': case_id})   
             }
-            fee_response = self.make_api_call("GET", url, payload)
-            if len(fee_response["Value"]) > 0:
-                logging.info(f"Case {i} out of {num_cases} has fees")
-                fees.extend(fee_response["Value"])
+            response = self.make_api_call("GET", url, payload)
+            if response["Value"] == None or len(response["Value"]) == 0:
+                logging.info(f"Case {i} out of {num_cases} has no {object_type}")
             else:
-                logging.info(f"Case {i} out of {num_cases} has no fees")
+                logging.info(f"Case {i} out of {num_cases} has {object_type}")
+                related_objects.extend(response["Value"])
             i += 1
-        logging.info(f"Successfully got case fees from Cityworks")
-        return pd.DataFrame(fees)
+        logging.info(f"Successfully got {object_type} from Cityworks")
+        return pd.DataFrame(related_objects)
+    
+    def get_case_fees_by_id(self, token, case_ids):
+        return self.get_related_object_by_case_id("CaseFees", token, case_ids)
     
     def get_case_payments_by_id(self, token, case_ids):
-        url = f"{self.base_url}/Pll/CasePayment/ByCaObjectId"
-        i = 1
-        num_cases = len(case_ids)
-        payments = []
-        for case_id in case_ids:
-            payload = {
-                "token": token,
-                "data": json.dumps({'CaObjectId': case_id})   
-            }
-            payment_response = self.make_api_call("GET", url, payload)
-            if payment_response["Value"] == None or len(payment_response["Value"]) == 0:
-                logging.info(f"Case {i} out of {num_cases} has no payments")
-            else:
-                logging.info(f"Case {i} out of {num_cases} has payments")
-                payments.extend(payment_response["Value"])
-            i += 1
-        logging.info(f"Successfully got case payments from Cityworks")
-        return pd.DataFrame(payments)
+        return self.get_related_object_by_case_id("CasePayment", token, case_ids)
 
     def get_case_tasks_by_id(self, token, case_ids):
-        url = f"{self.base_url}/Pll/CaseTask/ByCaObjectId"
-        i = 1
-        num_cases = len(case_ids)
-        tasks = []
-        for case_id in case_ids:
-            payload = {
-                "token": token,
-                "data": json.dumps({'CaObjectId': case_id})   
-            }
-            tasks_response = self.make_api_call("GET", url, payload)
-            if len(tasks_response["Value"]) > 0:
-                tasks.extend(tasks_response["Value"])
-            logging.info(f"Fectched tasks for case {i} out of {num_cases}")
-            i += 1
-        logging.info(f"Successfully got case tasks from Cityworks")
-        return pd.DataFrame(tasks)
+        return self.get_related_object_by_case_id("CaseTask", token, case_ids)
     
     def get_task_corrections_by_id(self, token, task_ids):
         url = f"{self.base_url}/Pll/CaseCorrections/ByCaTaskIds"
