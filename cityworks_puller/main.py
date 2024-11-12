@@ -41,9 +41,18 @@ def run(config):
     elif report_name == 'Case Fees':
         recent_case_ids = cityworks.get_recent_case_ids(token, months_to_include)
         out_data = cityworks.get_case_fees_by_id(token, recent_case_ids)
+    elif report_name == 'Case Payments':
+        recent_case_ids = cityworks.get_recent_case_ids(token, months_to_include)
+        out_data = cityworks.get_case_payments_by_id(token, recent_case_ids)
     elif report_name == 'Inspection Questions': 
         inspection_ids = cityworks.search_inspections(token, months_to_include)
         out_data = cityworks.get_inspection_questions_by_ids(token, inspection_ids)
+    elif report_name == 'Case Tasks':
+        recent_case_ids = cityworks.get_recent_case_ids(token, months_to_include)
+        out_data = cityworks.get_case_tasks_by_id(token, recent_case_ids)
+    elif report_name == 'Case Corrections':
+        case_task_ids = cityworks.search_case_tasks(token)
+        out_data = cityworks.get_task_corrections_by_id(token, case_task_ids)
     
     csv_headers = cityworks.create_csv(out_data, config.data_file_path)
     headers_dict = [{"name": header, "type": "VARCHAR"} for header in csv_headers]

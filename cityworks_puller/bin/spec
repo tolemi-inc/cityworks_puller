@@ -20,6 +20,18 @@ cat <<EOF
                             "value": "Case Fees"
                         },
                         {
+                            "label": "Case Payments",
+                            "value": "Case Payments"
+                        },
+                        {
+                            "label": "Case Tasks",
+                            "value": "Case Tasks"
+                        },
+                        {
+                            "label": "Case Corrections",
+                            "value": "Case Corrections"
+                        },
+                        {
                             "label": "Inspections",
                             "value": "Inspections"
                         },
