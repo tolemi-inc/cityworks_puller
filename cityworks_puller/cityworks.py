@@ -94,21 +94,21 @@ class Cityworks:
     def search_inspections(self, token, months=1, report_filter=None):
         url = f"{self.base_url}/Ams/Inspection/Search"
         date_filter = self.generate_date_filter_criteria(months, "InitiateDateBegin", "InitiateDateEnd")
-        full_filters = {**date_filter, **report_filter}
+        full_filters = {**date_filter, **(report_filter or {})}
         inspections = self.search_objects(token, url, full_filters)
         return inspections 
 
     def search_work_orders(self, token, months=1, report_filter=None):
         url = f"{self.base_url}/Ams/WorkOrder/Search"
         date_filter = self.generate_date_filter_criteria(months, "InitiateDateBegin", "InitiateDateEnd")
-        full_filters = {**date_filter, **report_filter}
+        full_filters = {**date_filter, **(report_filter or {})}
         work_orders = self.search_objects(token, url, full_filters)
         return work_orders 
        
     def search_requests(self, token, months=1, report_filter=None):
         url = f"{self.base_url}/Ams/ServiceRequest/Search"
         date_filter = self.generate_date_filter_criteria(months, "DateTimeInitBegin", "DateTimeInitEnd")
-        full_filters = {**date_filter, **report_filter}
+        full_filters = {**date_filter, **(report_filter or {})}
         requests = self.search_objects(token, url, full_filters)
         return requests   
     
