@@ -30,9 +30,12 @@ class Cityworks:
             )
 
             if response.status_code == 200:
+                # print(response.content)
+                # print(response.text)
                 return response.json()
             
             elif response.status_code == 503:
+                print(response)
                 time.sleep(5)
                 self.make_api_call(self, method, url, payload)
             
@@ -66,8 +69,8 @@ class Cityworks:
         else:
             payload = {
                 "token": token
-            }        
-        
+            } 
+
         response = self.make_api_call("GET", url, payload)
 
         if len(response["Value"]) == 200000:
@@ -83,39 +86,35 @@ class Cityworks:
         start = end - relativedelta(months=months)
         return {start_date_text: start.strftime("%Y-%m-%d"), end_date_text: end.strftime("%Y-%m-%d")}
     
-    def search_cases(self, token, filter_criteria=None):
+    def search_cases(self, token, report_filter=None):
         url = f"{self.base_url}/Pll/CaseObject/Search"
-        cases = self.search_objects(token, url, filter_criteria)
+        cases = self.search_objects(token, url, report_filter)
         return cases 
 
-    def search_inspections(self, token, months=1):
+    def search_inspections(self, token, months=1, report_filter=None):
         url = f"{self.base_url}/Ams/Inspection/Search"
         date_filter = self.generate_date_filter_criteria(months, "InitiateDateBegin", "InitiateDateEnd")
-        inspections = self.search_objects(token, url, date_filter)
+        full_filters = {**date_filter, **report_filter}
+        inspections = self.search_objects(token, url, full_filters)
         return inspections 
 
-    def search_work_orders(self, token, months=1):
+    def search_work_orders(self, token, months=1, report_filter=None):
         url = f"{self.base_url}/Ams/WorkOrder/Search"
         date_filter = self.generate_date_filter_criteria(months, "InitiateDateBegin", "InitiateDateEnd")
-        work_orders = self.search_objects(token, url, date_filter)
+        full_filters = {**date_filter, **report_filter}
+        work_orders = self.search_objects(token, url, full_filters)
         return work_orders 
        
-    def search_requests(self, token, months=1):
+    def search_requests(self, token, months=1, report_filter=None):
         url = f"{self.base_url}/Ams/ServiceRequest/Search"
         date_filter = self.generate_date_filter_criteria(months, "DateTimeInitBegin", "DateTimeInitEnd")
-        requests = self.search_objects(token, url, date_filter)
+        full_filters = {**date_filter, **report_filter}
+        requests = self.search_objects(token, url, full_filters)
         return requests   
     
     def search_case_addresses(self, token):
         url = f"{self.base_url}/Pll/CaseAddress/SearchObject"
         requests = self.search_objects(token, url)
-        return requests 
-    
-    def search_case_tasks(self, token):
-        url = f"{self.base_url}/Pll/CaseTask/Search"
-        filter_criteria = {'TaskComplete': False}
-        requests = self.search_objects(token, url, filter_criteria)
-        print(len(requests))
         return requests 
 
     def get_object_by_ids(self, token, url, ids, id_name, batch_size=500):
@@ -138,15 +137,9 @@ class Cityworks:
         cases = self.get_object_by_ids(token, url, ids, "CaObjectIds")
         return cases
     
-    def get_recent_case_ids(self, token, months):
-        code_enforcement_case_types = ['CE-CASE', 'CE-COURT']
-        all_case_object_ids = []
-        for case_type in code_enforcement_case_types:
-            filter_criteria = {'CaseType': case_type}
-            case_object_ids = self.search_cases(token, filter_criteria)
-            all_case_object_ids.extend(case_object_ids)
-
-        cases = self.get_cases_by_ids(token, all_case_object_ids)
+    def get_recent_case_ids(self, token, months, report_filter):
+        case_object_ids = self.search_cases(token, report_filter)
+        cases = self.get_cases_by_ids(token, case_object_ids)
 
         cutoff = pd.Timestamp(date.today() - relativedelta(months=months))
         cases['DateModified'] = pd.to_datetime(cases['DateModified'], format='%Y-%m-%dT%H:%M:%SZ', errors='coerce')
@@ -208,17 +201,17 @@ class Cityworks:
     def get_case_tasks_by_id(self, token, case_ids):
         return self.get_related_object_by_case_id("CaseTask", token, case_ids)
     
-    def get_task_corrections_by_id(self, token, task_ids):
+    def get_task_corrections_by_id(self, token, case_ids):
         url = f"{self.base_url}/Pll/CaseCorrections/ByCaTaskIds"
-        task_ids = pd.read_csv('case_task_ids.csv')
-        corrections = self.get_object_by_ids(token, url, task_ids['cataskid'].tolist(), "CaTaskIds")
+        tasks = self.get_case_tasks_by_id(token, case_ids)
+        corrections = self.get_object_by_ids(token, url, tasks['CaTaskId'].tolist(), "CaTaskIds")
         return corrections
 
-    def get_cases_with_addresses(self, token):
+    def get_cases_with_addresses(self, token, filter=None):
         case_addresses = pd.DataFrame(self.search_case_addresses(token))
         case_addresses = case_addresses[['CaObjectId', 'CaseNumber', 'Location']]
 
-        case_object_ids = self.search_cases(token)
+        case_object_ids = self.search_cases(token, filter)
         cases = pd.DataFrame(self.get_cases_by_ids(token, case_object_ids))
 
         cases_with_addresses = pd.merge(cases, case_addresses, on='CaObjectId', how='left')

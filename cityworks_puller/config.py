@@ -75,7 +75,4 @@ class Config:
 
     @filter.setter
     def filter(self, value):
-        if value is None:
-            pass
-        else:
-            self._filter = value
+        self._filter = value
