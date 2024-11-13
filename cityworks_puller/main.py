@@ -84,6 +84,7 @@ def load_config(file_path):
     password = sub_config.get('password')
     report_name = sub_config.get('report_name')
     months = sub_config.get('months')
+    filter = sub_config.get('filter')
 
     return Config(data_file_path, login_name, password, report_name, months)
 
