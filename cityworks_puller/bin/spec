@@ -58,6 +58,9 @@ cat <<EOF
             },
             "months":{
                 "type": "string"
+            },
+            "filter":{
+                "type": "string"
             }
         }
     }
