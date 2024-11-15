@@ -35,9 +35,8 @@ class Cityworks:
                 return response.json()
             
             elif response.status_code == 503:
-                print(response)
                 time.sleep(5)
-                self.make_api_call(self, method, url, payload)
+                self.make_api_call(method, url, payload)
             
             else:
                 logging.error("Api request returned a non-200 response")
