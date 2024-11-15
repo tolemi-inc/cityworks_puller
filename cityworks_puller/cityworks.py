@@ -117,7 +117,7 @@ class Cityworks:
         return requests 
 
     def get_object_by_ids(self, token, url, ids, id_name, batch_size=500):
-        output_file = 'objects.csv'
+        output_file = f"objects_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
         pd.DataFrame().to_csv(output_file, index=False)
 
         for i in range(0, len(ids), batch_size):
