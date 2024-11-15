@@ -1,12 +1,13 @@
 from config_error import ConfigError
 
 class Config:
-    def __init__(self, data_file_path, login_name, password, report_name, months):
+    def __init__(self, data_file_path, login_name, password, report_name, months, filter):
         self.data_file_path = data_file_path
         self.login_name = login_name
         self.password = password
         self.report_name = report_name
         self.months = months
+        self.filter = filter
 
     @ property
     def data_file_path(self):
@@ -47,7 +48,8 @@ class Config:
 
     @report_name.setter
     def report_name(self, value):
-        allowed_values = ["Inspections", "Work Orders", "Cases", "Requests", "Case Fees", "Inspection Questions"]
+        allowed_values = ["Inspections", "Work Orders", "Cases", "Requests", "Case Fees", "Case Payments", 
+                          "Inspection Questions", "Case Tasks", "Case Corrections"]
         if value is None:
             raise ConfigError("Missing report name in config")
         elif value in allowed_values:
@@ -66,3 +68,11 @@ class Config:
             raise ConfigError("Missing include number of months in config")
         else:
             self._months = value
+
+    @property
+    def filter(self):
+        return self._filter
+
+    @filter.setter
+    def filter(self, value):
+        self._filter = value
