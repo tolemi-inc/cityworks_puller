@@ -23,7 +23,9 @@ def run(config):
 
     report_name = config.report_name
 
-    if config.filter:
+    if config.filter == '':
+        report_filter = None
+    elif config.filter:
         report_filter = json.loads(config.filter.replace("'", '"'))
     else:
         report_filter = config.filter

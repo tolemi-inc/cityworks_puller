@@ -112,13 +112,15 @@ class Cityworks:
         requests = self.search_objects(token, url, full_filters)
         return requests   
     
-    def search_case_addresses(self, token):
+    def search_case_addresses(self, token, report_filter=None):
         url = f"{self.base_url}/Pll/CaseAddress/SearchObject"
-        requests = self.search_objects(token, url)
+        requests = self.search_objects(token, url, report_filter)
         return requests 
 
     def get_object_by_ids(self, token, url, ids, id_name, batch_size=500):
-        objects = []
+        output_file = 'objects.csv'
+        pd.DataFrame().to_csv(output_file, index=False)
+
         for i in range(0, len(ids), batch_size):
             batch_ids = ids[i:i+batch_size]
             payload = {
@@ -126,11 +128,12 @@ class Cityworks:
                 "data": json.dumps({id_name: batch_ids})   
             }
             response = self.make_api_call("GET", url, payload)
-            objects.extend(response["Value"])
+            batch_df = pd.DataFrame(response["Value"])
+            batch_df.to_csv(output_file, mode='a', index=False)
             logging.info(f"{i+len(batch_ids)} out of {len(ids)} objects retrieved successfully")
         
         logging.info(f"Successfully got objects from {id_name}")
-        return pd.DataFrame(objects)
+        return pd.read_csv(output_file)
 
     def get_cases_by_ids(self, token, ids):
         url = f"{self.base_url}/Pll/CaseObject/ByIds"
@@ -201,6 +204,9 @@ class Cityworks:
     def get_case_tasks_by_id(self, token, case_ids):
         return self.get_related_object_by_case_id("CaseTask", token, case_ids)
     
+    def get_case_addresses_by_id(self, token, case_ids):
+        return self.get_related_object_by_case_id("CaseAddress", token, case_ids)
+    
     def get_task_corrections_by_id(self, token, case_ids):
         url = f"{self.base_url}/Pll/CaseCorrections/ByCaTaskIds"
         tasks = self.get_case_tasks_by_id(token, case_ids)
@@ -208,11 +214,12 @@ class Cityworks:
         return corrections
 
     def get_cases_with_addresses(self, token, filter=None):
-        case_addresses = pd.DataFrame(self.search_case_addresses(token))
+        case_addresses = pd.DataFrame(self.search_case_addresses(token, json.loads("{'AssetType': 'CEPARCELS'}".replace("'", '"'))))
         case_addresses = case_addresses[['CaObjectId', 'CaseNumber', 'Location']]
+        case_addresses['CaObjectId'] = case_addresses['CaObjectId'].astype(str)
 
         case_object_ids = self.search_cases(token, filter)
-        cases = pd.DataFrame(self.get_cases_by_ids(token, case_object_ids))
+        cases = self.get_cases_by_ids(token, case_object_ids)
 
         cases_with_addresses = pd.merge(cases, case_addresses, on='CaObjectId', how='left')
         return cases_with_addresses
@@ -221,7 +228,7 @@ class Cityworks:
         try:
             if len(data) > 0:
                 field_names = data.columns.tolist()
-                data.to_csv(path, header=True, index=False)
+                data.to_csv(path, header=False, index=False)
                 return field_names
             else:
                 return []
