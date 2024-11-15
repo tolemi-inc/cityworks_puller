@@ -151,7 +151,6 @@ class Cityworks:
             (cases['DateModified'] >= cutoff) | 
             (cases['DateModified'].isna() & (cases['DateEntered'] >= cutoff))
         ]
-
         return recent_cases['CaObjectId'].tolist()
 
     def get_inspections_by_ids(self, token, ids):
