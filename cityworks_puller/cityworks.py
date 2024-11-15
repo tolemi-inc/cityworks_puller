@@ -168,27 +168,6 @@ class Cityworks:
         logging.info(f"Successfully got case fees from Cityworks")
         return fees
 
-    def get_case_comments_by_id(self, token, ids):
-        url = f"{self.base_url}/Pll/CaseObjectComments/ByCaObjectId"
-        case_comments = []
-        case_number = 1
-        for id in ids:
-            payload = {
-                "token": token,
-                "data": json.dumps({'CaObjectId': id})   
-            }
-            response = self.make_api_call("GET", url, payload)
-            logging.info(f"Got comments for case {case_number} out of {len(ids)}")
-            comments = response["Value"]
-            for comment in comments:
-                comment["CaObjectId"] = id
-            case_comments.extend(comments)
-            case_number += 1
-
-        self.create_csv(case_comments, "comments.csv")
-
-        return case_comments
-
     def create_csv(self, data, path):
         try:
             if len(data) > 0:
