@@ -1,12 +1,12 @@
 from config_error import ConfigError
 
 class Config:
-    def __init__(self, data_file_path, login_name, password, report_name, months, filter):
+    def __init__(self, data_file_path, login_name, password, report_name, days, filter):
         self.data_file_path = data_file_path
         self.login_name = login_name
         self.password = password
         self.report_name = report_name
-        self.months = months
+        self.days = days
         self.filter = filter
 
     @ property
@@ -59,15 +59,15 @@ class Config:
                 value, ", ".join(allowed_values)))
 
     @property
-    def months(self):
-        return self._months
+    def days(self):
+        return self._days
 
-    @months.setter
-    def months(self, value):
+    @days.setter
+    def days(self, value):
         if value is None:
-            raise ConfigError("Missing include number of months in config")
+            raise ConfigError("Missing include number of days in config")
         else:
-            self._months = value
+            self._days = value
 
     @property
     def filter(self):

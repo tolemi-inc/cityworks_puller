@@ -31,35 +31,35 @@ def run(config):
         report_filter = config.filter
 
     try:
-        months_to_include = int(config.months)
+        days_to_include = int(config.days)
     except:
         raise Exception("Unable to convert number of months to integer")
 
     if report_name == 'Cases':
         out_data = cityworks.get_cases_with_addresses(token, report_filter)
     elif report_name == 'Inspections':
-        inspection_ids = cityworks.search_inspections(token, months_to_include, report_filter)
+        inspection_ids = cityworks.search_inspections(token, days_to_include, report_filter)
         out_data = cityworks.get_inspections_by_ids(token, inspection_ids)
     elif report_name == 'Work Orders':
-        work_order_ids = cityworks.search_work_orders(token, months_to_include, report_filter)
+        work_order_ids = cityworks.search_work_orders(token, days_to_include, report_filter)
         out_data = cityworks.get_work_orders_by_ids(token, work_order_ids)
     elif report_name == 'Requests':
-        request_ids = cityworks.search_requests(token, months_to_include, report_filter)
+        request_ids = cityworks.search_requests(token, days_to_include, report_filter)
         out_data = cityworks.get_requests_by_ids(token, request_ids)
     elif report_name == 'Case Fees':
-        recent_case_ids = cityworks.get_recent_case_ids(token, months_to_include, report_filter)
+        recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
         out_data = cityworks.get_case_fees_by_id(token, recent_case_ids)
     elif report_name == 'Case Payments':
-        recent_case_ids = cityworks.get_recent_case_ids(token, months_to_include, report_filter)
+        recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
         out_data = cityworks.get_case_payments_by_id(token, recent_case_ids)
     elif report_name == 'Inspection Questions': 
-        inspection_ids = cityworks.search_inspections(token, months_to_include, report_filter)
+        inspection_ids = cityworks.search_inspections(token, days_to_include, report_filter)
         out_data = cityworks.get_inspection_questions_by_ids(token, inspection_ids)
     elif report_name == 'Case Tasks':
-        recent_case_ids = cityworks.get_recent_case_ids(token, months_to_include, report_filter)
+        recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
         out_data = cityworks.get_case_tasks_by_id(token, recent_case_ids)
     elif report_name == 'Case Corrections':
-        recent_case_ids = cityworks.get_recent_case_ids(token, months_to_include, report_filter)
+        recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
         out_data = cityworks.get_task_corrections_by_id(token, recent_case_ids)
     
     csv_headers = cityworks.create_csv(out_data, config.data_file_path)
@@ -91,10 +91,10 @@ def load_config(file_path):
     login_name = sub_config.get('login_name')
     password = sub_config.get('password')
     report_name = sub_config.get('report_name')
-    months = sub_config.get('months')
+    days = sub_config.get('days')
     filter = sub_config.get('filter')
 
-    return Config(data_file_path, login_name, password, report_name, months, filter)
+    return Config(data_file_path, login_name, password, report_name, days, filter)
 
 
 def load_json(file_path):

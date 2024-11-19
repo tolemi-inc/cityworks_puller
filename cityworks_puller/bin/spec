@@ -56,7 +56,7 @@ cat <<EOF
             "password":{
                 "type": "secret"
             },
-            "months":{
+            "days":{
                 "type": "string"
             },
             "filter":{

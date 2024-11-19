@@ -71,16 +71,16 @@ class Cityworks:
 
         request_type = "pll" if "Pll" in url else "ams" if "Ams" in url else None
         if (request_type == 'pll' and len(response["Value"]) == 200000) or (request_type == 'ams' and len(response["Value"]) == 5000):
-            logging.error("Too many records. Pick a smaller window of months")
+            logging.error("Too many records. Pick a smaller window of days")
             sys.exit()
 
         logging.info(f"Successfully searched for objects from the following endpoint: {url}")
 
         return response["Value"]
     
-    def generate_date_filter_criteria(self, months, start_date_text, end_date_text):
+    def generate_date_filter_criteria(self, days, start_date_text, end_date_text):
         end = date.today()
-        start = end - relativedelta(months=months)
+        start = end - relativedelta(days=days)
         return {start_date_text: start.strftime("%Y-%m-%d"), end_date_text: end.strftime("%Y-%m-%d")}
     
     def search_cases(self, token, report_filter=None):
@@ -88,23 +88,23 @@ class Cityworks:
         cases = self.search_objects(token, url, report_filter)
         return cases 
 
-    def search_inspections(self, token, months=1, report_filter=None):
+    def search_inspections(self, token, days=30, report_filter=None):
         url = f"{self.base_url}/Ams/Inspection/Search"
-        date_filter = self.generate_date_filter_criteria(months, "InitiateDateBegin", "InitiateDateEnd")
+        date_filter = self.generate_date_filter_criteria(days, "InitiateDateBegin", "InitiateDateEnd")
         full_filters = {**date_filter, **(report_filter or {})}
         inspections = self.search_objects(token, url, full_filters)
         return inspections 
 
-    def search_work_orders(self, token, months=1, report_filter=None):
+    def search_work_orders(self, token, days=30, report_filter=None):
         url = f"{self.base_url}/Ams/WorkOrder/Search"
-        date_filter = self.generate_date_filter_criteria(months, "InitiateDateBegin", "InitiateDateEnd")
+        date_filter = self.generate_date_filter_criteria(days, "InitiateDateBegin", "InitiateDateEnd")
         full_filters = {**date_filter, **(report_filter or {})}
         work_orders = self.search_objects(token, url, full_filters)
         return work_orders 
        
-    def search_requests(self, token, months=1, report_filter=None):
+    def search_requests(self, token, days=30, report_filter=None):
         url = f"{self.base_url}/Ams/ServiceRequest/Search"
-        date_filter = self.generate_date_filter_criteria(months, "DateTimeInitBegin", "DateTimeInitEnd")
+        date_filter = self.generate_date_filter_criteria(days, "DateTimeInitBegin", "DateTimeInitEnd")
         full_filters = {**date_filter, **(report_filter or {})}
         requests = self.search_objects(token, url, full_filters)
         return requests   
@@ -142,11 +142,11 @@ class Cityworks:
         cases = self.get_object_by_ids(token, url, ids, "CaObjectIds")
         return cases
     
-    def get_recent_case_ids(self, token, months, report_filter):
+    def get_recent_case_ids(self, token, days, report_filter):
         case_object_ids = self.search_cases(token, report_filter)
         cases = self.get_cases_by_ids(token, case_object_ids)
 
-        cutoff = pd.Timestamp(date.today() - relativedelta(months=months))
+        cutoff = pd.Timestamp(date.today() - relativedelta(days=days))
         cases['DateModified'] = pd.to_datetime(cases['DateModified'], format='%Y-%m-%dT%H:%M:%SZ', errors='coerce')
         cases['DateEntered'] = pd.to_datetime(cases['DateEntered'], format='%Y-%m-%dT%H:%M:%SZ', errors='coerce')
     
