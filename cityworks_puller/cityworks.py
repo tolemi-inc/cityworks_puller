@@ -69,7 +69,8 @@ class Cityworks:
 
         response = self.make_api_call("GET", url, payload)
 
-        if len(response["Value"]) == 200000:
+        request_type = "pll" if "Pll" in url else "ams" if "Ams" in url else None
+        if (request_type == 'pll' and len(response["Value"]) == 200000) or (request_type == 'ams' and len(response["Value"]) == 5000):
             logging.error("Too many records. Pick a smaller window of months")
             sys.exit()
 
