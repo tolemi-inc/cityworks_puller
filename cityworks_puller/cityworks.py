@@ -1,7 +1,6 @@
 import requests
 import logging
 import json
-import csv
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 import sys
@@ -30,8 +29,6 @@ class Cityworks:
             )
 
             if response.status_code == 200:
-                # print(response.content)
-                # print(response.text)
                 return response.json()
             
             elif response.status_code == 503:
@@ -132,7 +129,12 @@ class Cityworks:
             logging.info(f"{i+len(batch_ids)} out of {len(ids)} objects retrieved successfully")
         
         logging.info(f"Successfully got objects from {id_name}")
-        return pd.read_csv(output_file)
+
+        try:
+            return pd.read_csv(output_file)
+        except pd.errors.EmptyDataError:
+            logging.error("The file is empty, creating an empty DataFrame.")
+            return pd.DataFrame()
 
     def get_cases_by_ids(self, token, ids):
         url = f"{self.base_url}/Pll/CaseObject/ByIds"
@@ -212,7 +214,7 @@ class Cityworks:
         return corrections
 
     def get_cases_with_addresses(self, token, filter=None):
-        case_addresses = pd.DataFrame(self.search_case_addresses(token, json.loads("{'AssetType': 'CEPARCELS'}".replace("'", '"'))))
+        case_addresses = pd.DataFrame(self.search_case_addresses(token))
         case_addresses = case_addresses[['CaObjectId', 'CaseNumber', 'Location']]
         case_addresses['CaObjectId'] = case_addresses['CaObjectId'].astype(str)
 
