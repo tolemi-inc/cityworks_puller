@@ -3,7 +3,7 @@
         "login_name": "",
         "password": "",
         "report_name": "Cases",
-        "months": "1",
+        "days": "30",
         "filter": "{'CaseType': 'CE-CASE'}"
     },
     "dataFilePath": "data.csv"
