@@ -279,3 +279,33 @@ class Cityworks:
         
         logging.info(f"Total work orders retrieved: {len(all_work_orders)}")
         return all_work_orders
+
+    def get_work_orders_last_ten_years(self, token):
+        url = f"{self.base_url}/Ams/WorkOrder/Search"
+        end_date = date.today()
+        start_date = end_date - relativedelta(years=10)
+        all_work_orders = []
+        
+        current_start = start_date
+        while current_start < end_date:
+            current_end = min(current_start + relativedelta(days=7), end_date)
+            
+            date_filter = {
+                "InitiateDateBegin": current_start.strftime("%Y-%m-%d"),
+                "InitiateDateEnd": current_end.strftime("%Y-%m-%d")
+            }
+            
+            payload = {
+                "token": token,
+                "data": json.dumps(date_filter)
+            }
+            
+            response = self.make_api_call("GET", url, payload)
+            if response["Value"]:
+                all_work_orders.extend(response["Value"])
+                logging.info(f"Retrieved work orders from {current_start} to {current_end}")
+            
+            current_start = current_end
+        
+        logging.info(f"Total work orders retrieved: {len(all_work_orders)}")
+        return all_work_orders

@@ -42,8 +42,12 @@ def run(config):
         out_data = cityworks.get_inspections_by_ids(token, inspection_ids)
     # Note: Work orders update but we can't filter by updated date, so we're getting all work orders from the last year
     elif report_name == 'Work Orders':
-        work_order_ids = cityworks.get_work_orders_last_year(token)
-        out_data = cityworks.get_work_orders_by_ids(token, work_order_ids)
+        if days_to_include < 30:
+            work_order_ids = cityworks.get_work_orders_last_year(token)
+            out_data = cityworks.get_work_orders_by_ids(token, work_order_ids)
+        else:
+            work_order_ids = cityworks.get_work_orders_last_ten_years(token)
+            out_data = cityworks.get_work_orders_by_ids(token, work_order_ids)
     elif report_name == 'Requests':
         request_ids = cityworks.search_requests(token, days_to_include, report_filter)
         out_data = cityworks.get_requests_by_ids(token, request_ids)
