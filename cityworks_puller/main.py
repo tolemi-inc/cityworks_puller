@@ -40,6 +40,7 @@ def run(config):
     elif report_name == 'Inspections':
         inspection_ids = cityworks.search_inspections(token, days_to_include, report_filter)
         out_data = cityworks.get_inspections_by_ids(token, inspection_ids)
+    # Note: Work orders update but we can't filter by updated date, so we're getting all work orders from the last year
     elif report_name == 'Work Orders':
         work_order_ids = cityworks.get_work_orders_last_year(token)
         out_data = cityworks.get_work_orders_by_ids(token, work_order_ids)
