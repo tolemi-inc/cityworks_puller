@@ -101,6 +101,18 @@ class Cityworks:
         full_filters = {**date_filter, **(report_filter or {})}
         work_orders = self.search_objects(token, url, full_filters)
         return work_orders 
+
+    def search_all_work_orders(self, token, report_filter=None):
+        url = f"{self.base_url}/Ams/WorkOrder/Search"
+        payload = {
+            "token": token
+        }
+        if report_filter:
+            payload["data"] = json.dumps(report_filter)
+
+        response = self.make_api_call("GET", url, payload)
+        logging.info(f"Successfully searched for all work orders from: {url}")
+        return response["Value"]
        
     def search_requests(self, token, days=30, report_filter=None):
         url = f"{self.base_url}/Ams/ServiceRequest/Search"
@@ -117,6 +129,7 @@ class Cityworks:
     def get_object_by_ids(self, token, url, ids, id_name, batch_size=500):
         output_file = f"objects_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
         pd.DataFrame().to_csv(output_file, index=False)
+        start_time = datetime.now()
 
         for i in range(0, len(ids), batch_size):
             batch_ids = ids[i:i+batch_size]
@@ -127,7 +140,8 @@ class Cityworks:
             response = self.make_api_call("GET", url, payload)
             batch_df = pd.DataFrame(response["Value"])
             batch_df.to_csv(output_file, mode='a', index=False)
-            logging.info(f"{i+len(batch_ids)} out of {len(ids)} objects retrieved successfully")
+            elapsed_time = (datetime.now() - start_time).total_seconds()
+            logging.info(f"{i+len(batch_ids)} out of {len(ids)} objects retrieved successfully in {elapsed_time:.2f} seconds")
         
         logging.info(f"Successfully got objects from {id_name}")
 
@@ -235,3 +249,33 @@ class Cityworks:
                 return []
         except:
             raise Exception("Error writing to csv file")
+
+    def get_work_orders_last_year(self, token):
+        url = f"{self.base_url}/Ams/WorkOrder/Search"
+        end_date = date.today()
+        start_date = end_date - relativedelta(years=1)
+        all_work_orders = []
+        
+        current_start = start_date
+        while current_start < end_date:
+            current_end = min(current_start + relativedelta(days=7), end_date)
+            
+            date_filter = {
+                "InitiateDateBegin": current_start.strftime("%Y-%m-%d"),
+                "InitiateDateEnd": current_end.strftime("%Y-%m-%d")
+            }
+            
+            payload = {
+                "token": token,
+                "data": json.dumps(date_filter)
+            }
+            
+            response = self.make_api_call("GET", url, payload)
+            if response["Value"]:
+                all_work_orders.extend(response["Value"])
+                logging.info(f"Retrieved work orders from {current_start} to {current_end}")
+            
+            current_start = current_end
+        
+        logging.info(f"Total work orders retrieved: {len(all_work_orders)}")
+        return all_work_orders

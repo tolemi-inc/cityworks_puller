@@ -41,7 +41,7 @@ def run(config):
         inspection_ids = cityworks.search_inspections(token, days_to_include, report_filter)
         out_data = cityworks.get_inspections_by_ids(token, inspection_ids)
     elif report_name == 'Work Orders':
-        work_order_ids = cityworks.search_work_orders(token, days_to_include, report_filter)
+        work_order_ids = cityworks.get_work_orders_last_year(token)
         out_data = cityworks.get_work_orders_by_ids(token, work_order_ids)
     elif report_name == 'Requests':
         request_ids = cityworks.search_requests(token, days_to_include, report_filter)
