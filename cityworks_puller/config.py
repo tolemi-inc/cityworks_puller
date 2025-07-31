@@ -49,7 +49,7 @@ class Config:
     @report_name.setter
     def report_name(self, value):
         allowed_values = ["Inspections", "Work Orders", "Cases", "Requests", "Case Fees", "Case Payments", 
-                          "Inspection Questions", "Case Tasks", "Case Corrections"]
+                          "Inspection Questions", "Case Tasks", "Case Corrections", "Case People"]
         if value is None:
             raise ConfigError("Missing report name in config")
         elif value in allowed_values:
