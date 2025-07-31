@@ -223,6 +223,9 @@ class Cityworks:
     def get_case_addresses_by_id(self, token, case_ids):
         return self.get_related_object_by_case_id("CaseAddress", token, case_ids)
     
+    def get_case_people_by_id(self, token, case_ids):
+        return self.get_related_object_by_case_id("CasePeople", token, case_ids)
+    
     def get_task_corrections_by_id(self, token, case_ids):
         url = f"{self.base_url}/Pll/CaseCorrections/ByCaTaskIds"
         tasks = self.get_case_tasks_by_id(token, case_ids)
