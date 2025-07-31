@@ -66,6 +66,9 @@ def run(config):
     elif report_name == 'Case Corrections':
         recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
         out_data = cityworks.get_task_corrections_by_id(token, recent_case_ids)
+    elif report_name == 'Case People':
+        recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
+        out_data = cityworks.get_case_people_by_id(token, recent_case_ids)
     
     csv_headers = cityworks.create_csv(out_data, config.data_file_path)
     headers_dict = [{"name": header, "type": "VARCHAR"} for header in csv_headers]
