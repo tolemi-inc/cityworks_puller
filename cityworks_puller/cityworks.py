@@ -182,6 +182,7 @@ class Cityworks:
     
     def get_requests_by_ids(self, token, ids):
         url = f"{self.base_url}/Ams/ServiceRequest/ByIds"
+        ids = [i for i in ids if i != 660859]
         requests = self.get_object_by_ids(token, url, ids, "RequestIds")
         return requests
     
@@ -309,3 +310,63 @@ class Cityworks:
         
         logging.info(f"Total work orders retrieved: {len(all_work_orders)}")
         return all_work_orders
+    
+    def get_requests_last_year(self, token):
+        url = f"{self.base_url}/Ams/ServiceRequest/Search"
+        end_date = date.today()
+        start_date = end_date - relativedelta(years=1)
+        all_requests = []
+        
+        current_start = start_date
+        while current_start < end_date:
+            current_end = min(current_start + relativedelta(days=7), end_date)
+            
+            date_filter = {
+                "DateTimeInitBegin": current_start.strftime("%Y-%m-%d"),
+                "DateTimeInitEnd": current_end.strftime("%Y-%m-%d")
+            }
+            
+            payload = {
+                "token": token,
+                "data": json.dumps(date_filter)
+            }
+            
+            response = self.make_api_call("GET", url, payload)
+            if response["Value"]:
+                all_requests.extend(response["Value"])
+                logging.info(f"Retrieved requests from {current_start} to {current_end}")
+            
+            current_start = current_end
+        
+        logging.info(f"Total requests retrieved: {len(all_requests)}")
+        return all_requests
+
+    def get_requests_last_ten_years(self, token):
+        url = f"{self.base_url}/Ams/ServiceRequest/Search"
+        end_date = date.today()
+        start_date = end_date - relativedelta(years=10)
+        all_requests = []
+        
+        current_start = start_date
+        while current_start < end_date:
+            current_end = min(current_start + relativedelta(days=7), end_date)
+            
+            date_filter = {
+                "DateTimeInitBegin": current_start.strftime("%Y-%m-%d"),
+                "DateTimeInitEnd": current_end.strftime("%Y-%m-%d")
+            }
+            
+            payload = {
+                "token": token,
+                "data": json.dumps(date_filter)
+            }
+            
+            response = self.make_api_call("GET", url, payload)
+            if response["Value"]:
+                all_requests.extend(response["Value"])
+                logging.info(f"Retrieved requests from {current_start} to {current_end}")
+            
+            current_start = current_end
+        
+        logging.info(f"Total requests retrieved: {len(all_requests)}")
+        return all_requests
