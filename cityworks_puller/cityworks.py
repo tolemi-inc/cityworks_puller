@@ -314,7 +314,7 @@ class Cityworks:
     def get_requests_last_year(self, token):
         url = f"{self.base_url}/Ams/ServiceRequest/Search"
         end_date = date.today()
-        start_date = end_date - relativedelta(years=10)
+        start_date = end_date - relativedelta(years=1)
         all_requests = []
         
         current_start = start_date
@@ -344,7 +344,7 @@ class Cityworks:
     def get_requests_last_ten_years(self, token):
         url = f"{self.base_url}/Ams/ServiceRequest/Search"
         end_date = date.today()
-        start_date = end_date - relativedelta(years=1)
+        start_date = end_date - relativedelta(years=10)
         all_requests = []
         
         current_start = start_date
