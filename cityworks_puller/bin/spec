@@ -32,6 +32,10 @@ cat <<EOF
                             "value": "Case Corrections"
                         },
                         {
+                            "label": "Case People",
+                            "value": "Case People"
+                        },
+                        {
                             "label": "Inspections",
                             "value": "Inspections"
                         },
