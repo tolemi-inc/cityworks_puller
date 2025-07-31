@@ -48,7 +48,7 @@ def run(config):
         else:
             work_order_ids = cityworks.get_work_orders_last_ten_years(token)
             out_data = cityworks.get_work_orders_by_ids(token, work_order_ids)
-    # Note: Requests update but we can't filter by updated date, so we're getting all work orders from the last year
+    # Note: Requests update but we can't filter by updated date, so we're getting all requests from the last year
     elif report_name == 'Requests':
         if days_to_include < 30: 
             request_ids = cityworks.get_requests_last_year(token)

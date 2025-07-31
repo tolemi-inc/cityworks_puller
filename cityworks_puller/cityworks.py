@@ -182,7 +182,7 @@ class Cityworks:
     
     def get_requests_by_ids(self, token, ids):
         url = f"{self.base_url}/Ams/ServiceRequest/ByIds"
-        ids.remove(660859)
+        ids = [i for i in ids if i != 660859]
         requests = self.get_object_by_ids(token, url, ids, "RequestIds")
         return requests
     
@@ -314,7 +314,7 @@ class Cityworks:
     def get_requests_last_year(self, token):
         url = f"{self.base_url}/Ams/ServiceRequest/Search"
         end_date = date.today()
-        start_date = end_date - relativedelta(years=1)
+        start_date = end_date - relativedelta(years=10)
         all_requests = []
         
         current_start = start_date
@@ -338,7 +338,7 @@ class Cityworks:
             
             current_start = current_end
         
-        logging.info(f"Total requets retrieved: {len(all_requests)}")
+        logging.info(f"Total requests retrieved: {len(all_requests)}")
         return all_requests
 
     def get_requests_last_ten_years(self, token):
