@@ -48,9 +48,14 @@ def run(config):
         else:
             work_order_ids = cityworks.get_work_orders_last_ten_years(token)
             out_data = cityworks.get_work_orders_by_ids(token, work_order_ids)
+    # Note: Requests update but we can't filter by updated date, so we're getting all requests from the last year
     elif report_name == 'Requests':
-        request_ids = cityworks.search_requests(token, days_to_include, report_filter)
-        out_data = cityworks.get_requests_by_ids(token, request_ids)
+        if days_to_include < 30: 
+            request_ids = cityworks.get_requests_last_year(token)
+            out_data = cityworks.get_requests_by_ids(token, request_ids)
+        else: 
+            request_ids = cityworks.get_requests_last_ten_years(token)
+            out_data = cityworks.get_requests_by_ids(token, request_ids)
     elif report_name == 'Case Fees':
         recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
         out_data = cityworks.get_case_fees_by_id(token, recent_case_ids)
@@ -69,7 +74,7 @@ def run(config):
     elif report_name == 'Case People':
         recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
         out_data = cityworks.get_case_people_by_id(token, recent_case_ids)
-    
+
     csv_headers = cityworks.create_csv(out_data, config.data_file_path)
     headers_dict = [{"name": header, "type": "VARCHAR"} for header in csv_headers]
 
