@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 import sys
 import time
 import pandas as pd
+import os
 
 class Cityworks:
     def __init__(self, login_name, password, base_url):
@@ -129,37 +130,60 @@ class Cityworks:
         requests = self.search_objects(token, url, report_filter)
         return requests 
     
-    def search_case_payments(self, token, report_filter=None):
-        url = f"{self.base_url}/Pll/CasePayment/SearchObject"
+    def search_case_people(self, token, report_filter=None):
+        url = f"{self.base_url}/Pll/CasePeople/SearchObject"
         requests = self.search_objects(token, url, report_filter)
+        logging.info(len(requests))
         return pd.DataFrame(requests)
     
-    def search_case_fees(self, token, report_filter=None):
-        url = f"{self.base_url}/Pll/CaseFees/SearchObject"
+    def search_case_payments(self, token, output_file, report_filter=None):
+        url = f"{self.base_url}/Pll/CasePayment/SearchObject"
 
-        fee_codes = pd.read_json('cityworks_puller/input_data/fee_codes.json')
+        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'input_data/fee_codes.json'))
         codes_list = fee_codes.iloc[:, 0].tolist()
 
-        all_requests = []
-
-        i = 1
+        field_names = []
         codes_length = len(codes_list)
-        for code in codes_list:
+
+        for i, code in enumerate(codes_list, start=1):
             code_filter = {"FeeCode": code}
-            if report_filter:
-                combined_filter = {**code_filter, **report_filter}
-            else:
-                combined_filter = code_filter
+            combined_filter = {**code_filter, **report_filter} if report_filter else code_filter
 
             logging.info(f'Retrieving code fees with code {code}. {i} out of {codes_length} fee types.')
-
             requests = self.search_objects(token, url, combined_filter)
-            i += 1
 
             if requests:
-                all_requests.extend(requests)
+                payments_df = pd.DataFrame(requests)
+                if i == 1: # first loop
+                    field_names = payments_df.columns.tolist()
+                payments_df.to_csv(output_file, mode='a', header=False, index=False)
 
-        return pd.DataFrame(all_requests)
+        return field_names 
+    
+    def search_case_fees(self, token, output_file, report_filter=None):
+        url = f"{self.base_url}/Pll/CaseFees/SearchObject"
+
+        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'input_data/fee_codes.json'))
+        codes_list = fee_codes.iloc[:, 0].tolist()
+
+        field_names = []
+        codes_length = len(codes_list)
+
+        for i, code in enumerate(codes_list, start=1):
+            code_filter = {"FeeCode": code}
+            combined_filter = {**code_filter, **report_filter} if report_filter else code_filter
+
+            logging.info(f'Retrieving code fees with code {code}. {i} out of {codes_length} fee types.')
+            requests = self.search_objects(token, url, combined_filter)
+
+            if requests:
+                fees_df = pd.DataFrame(requests)
+                if i == 1: # first loop
+                    field_names = fees_df.columns.tolist()
+                fees_df.to_csv(output_file, mode='a', header=False, index=False)
+        
+        return field_names
+
 
     def get_object_by_ids(self, token, url, ids, id_name, batch_size=500):
         output_file = f"objects_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
