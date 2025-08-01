@@ -31,7 +31,7 @@ def run(config):
         report_filter = config.filter
 
     try:
-        days_to_include = int(config.days) if config.days is not None else None
+        days_to_include = int(config.days) if config.days is not None else 0
     except:
         raise Exception("Unable to convert number of months to integer")
 
