@@ -125,6 +125,16 @@ class Cityworks:
         url = f"{self.base_url}/Pll/CaseAddress/SearchObject"
         requests = self.search_objects(token, url, report_filter)
         return requests 
+    
+    def search_case_payments(self, token, report_filter=None):
+        url = f"{self.base_url}/Pll/CasePayment/SearchObject"
+        requests = self.search_objects(token, url, report_filter)
+        return pd.DataFrame(requests)
+    
+    def search_case_fees(self, token, report_filter=None):
+        url = f"{self.base_url}/Pll/CaseFees/SearchObject"
+        requests = self.search_objects(token, url, report_filter)
+        return pd.DataFrame(requests)
 
     def get_object_by_ids(self, token, url, ids, id_name, batch_size=500):
         output_file = f"objects_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"

@@ -31,7 +31,7 @@ def run(config):
         report_filter = config.filter
 
     try:
-        days_to_include = int(config.days)
+        days_to_include = int(config.days) if config.days is not None else None
     except:
         raise Exception("Unable to convert number of months to integer")
 
@@ -57,11 +57,9 @@ def run(config):
             request_ids = cityworks.get_requests_last_ten_years(token)
             out_data = cityworks.get_requests_by_ids(token, request_ids)
     elif report_name == 'Case Fees':
-        recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
-        out_data = cityworks.get_case_fees_by_id(token, recent_case_ids)
+        out_data = cityworks.search_case_fees(token)
     elif report_name == 'Case Payments':
-        recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
-        out_data = cityworks.get_case_payments_by_id(token, recent_case_ids)
+        out_data = cityworks.search_case_payments(token)
     elif report_name == 'Inspection Questions': 
         inspection_ids = cityworks.search_inspections(token, days_to_include, report_filter)
         out_data = cityworks.get_inspection_questions_by_ids(token, inspection_ids)
@@ -104,7 +102,7 @@ def load_config(file_path):
     login_name = sub_config.get('login_name')
     password = sub_config.get('password')
     report_name = sub_config.get('report_name')
-    days = sub_config.get('days')
+    days = sub_config.get('days') or None
     filter = sub_config.get('filter')
 
     return Config(data_file_path, login_name, password, report_name, days, filter)
