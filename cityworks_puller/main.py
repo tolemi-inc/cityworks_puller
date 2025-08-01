@@ -70,11 +70,9 @@ def run(config):
         recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
         out_data = cityworks.get_task_corrections_by_id(token, recent_case_ids)
     elif report_name == 'Case People':
-        # recent_case_ids = cityworks.get_recent_case_ids(token, days_to_include, report_filter)
-        # out_data = cityworks.get_case_people_by_id(token, recent_case_ids)
-        outdata = cityworks.search_case_people(token)
+        csv_headers = cityworks.search_case_people(token, config.data_file_path)
 
-    if report_name not in ('Case Fees', 'Case Payments'):
+    if report_name not in ('Case People', 'Case Fees', 'Case Payments'):
         csv_headers = cityworks.create_csv(out_data, config.data_file_path)
 
     headers_dict = [{"name": header, "type": "VARCHAR"} for header in csv_headers]

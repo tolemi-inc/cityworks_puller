@@ -130,11 +130,29 @@ class Cityworks:
         requests = self.search_objects(token, url, report_filter)
         return requests 
     
-    def search_case_people(self, token, report_filter=None):
+    def search_case_people(self, token, output_file, report_filter=None):
         url = f"{self.base_url}/Pll/CasePeople/SearchObject"
-        requests = self.search_objects(token, url, report_filter)
-        logging.info(len(requests))
-        return pd.DataFrame(requests)
+
+        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'cityworks_codes/people_codes.json'))
+        codes_list = fee_codes.iloc[:, 0].tolist()
+
+        field_names = []
+        codes_length = len(codes_list)
+
+        for i, code in enumerate(codes_list, start=1):
+            people_filter = {"RoleCode": code}
+            combined_filter = {**people_filter, **report_filter} if report_filter else people_filter
+
+            logging.info(f'Retrieving code people with role code {code}. {i} out of {codes_length} people types.')
+            requests = self.search_objects(token, url, combined_filter)
+
+            if requests:
+                people_df = pd.DataFrame(requests)
+                if i == 1: # first loop
+                    field_names = people_df.columns.tolist()
+                people_df.to_csv(output_file, mode='a', header=False, index=False)
+
+        return field_names 
     
     def search_case_payments(self, token, output_file, report_filter=None):
         url = f"{self.base_url}/Pll/CasePayment/SearchObject"
@@ -149,7 +167,7 @@ class Cityworks:
             code_filter = {"FeeCode": code}
             combined_filter = {**code_filter, **report_filter} if report_filter else code_filter
 
-            logging.info(f'Retrieving code fees with code {code}. {i} out of {codes_length} fee types.')
+            logging.info(f'Retrieving code payments with code {code}. {i} out of {codes_length} fee types.')
             requests = self.search_objects(token, url, combined_filter)
 
             if requests:
