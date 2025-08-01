@@ -139,7 +139,7 @@ class Cityworks:
     def search_case_payments(self, token, output_file, report_filter=None):
         url = f"{self.base_url}/Pll/CasePayment/SearchObject"
 
-        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'input_data/fee_codes.json'))
+        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'cityworks_codes/fee_codes.json'))
         codes_list = fee_codes.iloc[:, 0].tolist()
 
         field_names = []
@@ -163,7 +163,7 @@ class Cityworks:
     def search_case_fees(self, token, output_file, report_filter=None):
         url = f"{self.base_url}/Pll/CaseFees/SearchObject"
 
-        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'input_data/fee_codes.json'))
+        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'cityworks_codes/fee_codes.json'))
         codes_list = fee_codes.iloc[:, 0].tolist()
 
         field_names = []
