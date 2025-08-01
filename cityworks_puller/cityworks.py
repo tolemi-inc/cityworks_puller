@@ -69,6 +69,9 @@ class Cityworks:
 
         response = self.make_api_call("GET", url, payload)
 
+        if response["Value"] is None:
+            return []
+
         request_type = "pll" if "Pll" in url else "ams" if "Ams" in url else None
         if (request_type == 'pll' and len(response["Value"]) == 200000) or (request_type == 'ams' and len(response["Value"]) == 5000):
             logging.error("Too many records. Pick a smaller window of days")
@@ -133,8 +136,30 @@ class Cityworks:
     
     def search_case_fees(self, token, report_filter=None):
         url = f"{self.base_url}/Pll/CaseFees/SearchObject"
-        requests = self.search_objects(token, url, report_filter)
-        return pd.DataFrame(requests)
+
+        fee_codes = pd.read_json('cityworks_puller/input_data/fee_codes.json')
+        codes_list = fee_codes.iloc[:, 0].tolist()
+
+        all_requests = []
+
+        i = 1
+        codes_length = len(codes_list)
+        for code in codes_list:
+            code_filter = {"FeeCode": code}
+            if report_filter:
+                combined_filter = {**code_filter, **report_filter}
+            else:
+                combined_filter = code_filter
+
+            logging.info(f'Retrieving code fees with code {code}. {i} out of {codes_length} fee types.')
+
+            requests = self.search_objects(token, url, combined_filter)
+            i += 1
+
+            if requests:
+                all_requests.extend(requests)
+
+        return pd.DataFrame(all_requests)
 
     def get_object_by_ids(self, token, url, ids, id_name, batch_size=500):
         output_file = f"objects_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
