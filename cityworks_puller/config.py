@@ -64,10 +64,7 @@ class Config:
 
     @days.setter
     def days(self, value):
-        if value is None:
-            raise ConfigError("Missing include number of days in config")
-        else:
-            self._days = value
+        self._days = value
 
     @property
     def filter(self):

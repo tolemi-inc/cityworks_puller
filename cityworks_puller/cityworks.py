@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 import sys
 import time
 import pandas as pd
+import os
 
 class Cityworks:
     def __init__(self, login_name, password, base_url):
@@ -69,6 +70,9 @@ class Cityworks:
 
         response = self.make_api_call("GET", url, payload)
 
+        if response["Value"] is None:
+            return []
+
         request_type = "pll" if "Pll" in url else "ams" if "Ams" in url else None
         if (request_type == 'pll' and len(response["Value"]) == 200000) or (request_type == 'ams' and len(response["Value"]) == 5000):
             logging.error("Too many records. Pick a smaller window of days")
@@ -125,6 +129,79 @@ class Cityworks:
         url = f"{self.base_url}/Pll/CaseAddress/SearchObject"
         requests = self.search_objects(token, url, report_filter)
         return requests 
+    
+    def search_case_people(self, token, output_file, report_filter=None):
+        url = f"{self.base_url}/Pll/CasePeople/SearchObject"
+
+        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'cityworks_codes/people_codes.json'))
+        codes_list = fee_codes.iloc[:, 0].tolist()
+
+        field_names = []
+        codes_length = len(codes_list)
+
+        for i, code in enumerate(codes_list, start=1):
+            people_filter = {"RoleCode": code}
+            combined_filter = {**people_filter, **report_filter} if report_filter else people_filter
+
+            logging.info(f'Retrieving code people with role code {code}. {i} out of {codes_length} people types.')
+            requests = self.search_objects(token, url, combined_filter)
+
+            if requests:
+                people_df = pd.DataFrame(requests)
+                if i == 1: # first loop
+                    field_names = people_df.columns.tolist()
+                people_df.to_csv(output_file, mode='a', header=False, index=False)
+
+        return field_names 
+    
+    def search_case_payments(self, token, output_file, report_filter=None):
+        url = f"{self.base_url}/Pll/CasePayment/SearchObject"
+
+        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'cityworks_codes/fee_codes.json'))
+        codes_list = fee_codes.iloc[:, 0].tolist()
+
+        field_names = []
+        codes_length = len(codes_list)
+
+        for i, code in enumerate(codes_list, start=1):
+            code_filter = {"FeeCode": code}
+            combined_filter = {**code_filter, **report_filter} if report_filter else code_filter
+
+            logging.info(f'Retrieving code payments with code {code}. {i} out of {codes_length} fee types.')
+            requests = self.search_objects(token, url, combined_filter)
+
+            if requests:
+                payments_df = pd.DataFrame(requests)
+                if i == 1: # first loop
+                    field_names = payments_df.columns.tolist()
+                payments_df.to_csv(output_file, mode='a', header=False, index=False)
+
+        return field_names 
+    
+    def search_case_fees(self, token, output_file, report_filter=None):
+        url = f"{self.base_url}/Pll/CaseFees/SearchObject"
+
+        fee_codes = pd.read_json(os.path.join(os.path.dirname(__file__), 'cityworks_codes/fee_codes.json'))
+        codes_list = fee_codes.iloc[:, 0].tolist()
+
+        field_names = []
+        codes_length = len(codes_list)
+
+        for i, code in enumerate(codes_list, start=1):
+            code_filter = {"FeeCode": code}
+            combined_filter = {**code_filter, **report_filter} if report_filter else code_filter
+
+            logging.info(f'Retrieving code fees with code {code}. {i} out of {codes_length} fee types.')
+            requests = self.search_objects(token, url, combined_filter)
+
+            if requests:
+                fees_df = pd.DataFrame(requests)
+                if i == 1: # first loop
+                    field_names = fees_df.columns.tolist()
+                fees_df.to_csv(output_file, mode='a', header=False, index=False)
+        
+        return field_names
+
 
     def get_object_by_ids(self, token, url, ids, id_name, batch_size=500):
         output_file = f"objects_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
